@@ -46,7 +46,7 @@ class LabelDecoder():
 
 
 class CoordinateDetection():
-    def __init__(self, img, debug, smooth_window=20, min_interval=70):
+    def __init__(self, img, debug, smooth_window=15, min_interval=70):
         img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,11,2)
         self.img = img
         self.debug = debug
@@ -98,18 +98,18 @@ class CoordinateDetection():
         return
 
     def _get_smooth_edge(self, smooth):
-        diff = 5
+        diff = 8
         # threshold_high, threshold_low = 120, 80
         edge = []
         flag = 0
 
-        for ind in range(len(smooth) - 2):
-            if flag == 0 and smooth[ind + 2] - smooth[ind + 1] < -diff and smooth[ind + 1] - smooth[ind] < -diff:
-                edge.append(ind+1)
+        for ind in range(len(smooth) - 4):
+            if flag == 0 and smooth[ind + 4] - smooth[ind + 2] < -diff and smooth[ind + 2] - smooth[ind] < -diff:
+                edge.append(ind + 2)
                 flag = 1
-            elif flag == 1 and smooth[ind + 2] - smooth[ind + 1] > diff and smooth[ind + 1] - smooth[ind] > diff:
+            elif flag == 1 and smooth[ind + 4] - smooth[ind + 1] > diff and smooth[ind + 2] - smooth[ind] > diff:
                 flag = 0
-
+        print(edge)
         try:
             interval_group = [[edge[0]]]
             for e in edge[1:]:
@@ -120,6 +120,9 @@ class CoordinateDetection():
                         new_group = 0
                 if new_group:
                     interval_group.append([e])
+
+            if len(interval_group) == 1:
+                return interval_group[0]
 
             interval_group.sort(key=lambda x: -len(x))
 
@@ -160,7 +163,7 @@ class CoordinateDetection():
 
         diff_edge0 = [self.edge0[i + 1] - self.edge0[i] for i in range(len(self.edge0) - 1)]
         diff_edge1 = [self.edge1[i + 1] - self.edge1[i] for i in range(len(self.edge1) - 1)]
-        print(diff_edge0,diff_edge1)
+
         try:
             self.well_px = int(np.mean(diff_edge0 + diff_edge1))
             self.edge_px = self.well_px // 4
@@ -228,7 +231,6 @@ class CoordinateDetection():
                     for bit in range(MARK_BITS):
                         left = int(delta * (bit + 0.5))
                         mark = edge[left:][:self.edge_px]
-                        print(mark.shape)
                         b = self._is_mark(mark)
 
                         if b:
