@@ -17,8 +17,9 @@ def test_main():
         with open('./marker_labels/Image_{:05d}_CH4.csv'.format(i)) as f:
             actual = f.read().rstrip('\n').split(',')
             if len(actual) == 1:
-                continue
-            actual = list(map(int, actual))
+                actual = []
+            else:
+                actual = list(map(int, actual))
 
         args.path_img = './pictures/Image_{:05d}_CH4.jpg'.format(i)
         print(f"\ntest {args.path_img}")
@@ -28,6 +29,10 @@ def test_main():
         _count_ok, _count_non = 0, 0
         if len(expected) != len(actual):
             print("The data length of marker_label does not match.")
+        if len(expected) == 0:
+            print(f"accracy: ------------------ (0 / 0)")
+            continue
+
         for e,a in zip(expected, actual):
             if a == -1:
                 _count_non += 1

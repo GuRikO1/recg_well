@@ -24,7 +24,7 @@ class CoordinateDetection():
         self.markers =[]
 
     def _remove_outlier(self, lst: List[float], sigma: float =1.0) -> List[float]:
-        m = np.mean(lst)
+        m = np.median(lst)
         s = np.std(lst)
         return [t for t in lst if abs(t - m) < sigma * s]
 
@@ -52,11 +52,10 @@ class CoordinateDetection():
 
     def rotate(self) -> None:
         cos4, sin4 = self._to_two_times_angle(self._to_two_times_angle(self._calc_norm(self.blur_img)))
-        n_x = np.mean(cos4)
-        n_y = np.mean(sin4)
+        n_x = np.mean(self._remove_outlier(cos4))
+        n_y = np.mean(self._remove_outlier(sin4))
         four_theta = np.arctan2(n_y, n_x)
         theta = np.rad2deg(four_theta * 0.25)
-        print(f'theta = {theta}')
 
         centroid = np.array(self.thresh_img.shape) // 2
         m = cv2.getRotationMatrix2D(tuple(centroid), theta, 1)
@@ -66,7 +65,7 @@ class CoordinateDetection():
         return
 
     def _get_smooth_edge(self, smooth):
-        diff = 8
+        diff = 6
         # threshold_high, threshold_low = 120, 80
         edge = []
         flag = 0
@@ -106,19 +105,18 @@ class CoordinateDetection():
             return []
 
 
-    def _remove_non_edge(self, edge, well_px):
-        if len(edge) <= 1:
-            return edge
-        return edge[:-1] if edge[-1] - edge[-2] < 0.9 * well_px else edge
+    # def _remove_non_edge(self, edge, well_px):
+    #     if len(edge) <= 1:
+    #         return edge
+    #     return edge[:-1] if edge[-1] - edge[-2] < 0.9 * well_px else edge
 
     def get_edge_location(self) -> (int, List[int], List[int]):
         self.blur_rotate_img = cv2.GaussianBlur(self.rotate_img, (5, 5), 2)
         _, self.thresh = cv2.threshold(self.blur_rotate_img, 0, 255, cv2.THRESH_OTSU)
         w = np.ones(self.smooth_window) / self.smooth_window
+
         smooth_ax0: np.ndarray = np.convolve(np.mean(self.blur_rotate_img, axis=1), w, mode='same')
         smooth_ax1: np.ndarray = np.convolve(np.mean(self.blur_rotate_img, axis=0), w, mode='same')
-
-        print(smooth_ax0)
 
         if self.debug:
             fig = plt.figure(figsize=(14, 4))

@@ -12,8 +12,8 @@ MARK_BITS: int = 3
 bit_pow: List[int] = [2 ** i for i in range(MARK_BITS)]
 
 class TestCoordinateDetection(CoordinateDetection):
-    def __init__(self, label_decoder, img, img_name, debug, smooth_window=15, min_interval=70):
-        super(TestCoordinateDetection, self).__init__(label_decoder, img, debug, smooth_window, min_interval)
+    def __init__(self, label_decoder, img, img_name, debug):
+        super(TestCoordinateDetection, self).__init__(label_decoder, img, debug)
         img_name = img_name.split('/')[2].split('.')[0]
         with open(f'marker_labels/{img_name}.csv', 'r') as f:
             true_label = f.read().rstrip('\n').split(',')
@@ -123,21 +123,23 @@ def main(args):
 
     return tcd.markers
 
+class TestArgs():
+    path_img = ''
+    time_log = False
+    debug = False
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--path_img')
-    parser.add_argument('--time_log', default=False)
-    parser.add_argument('--debug', default=False)
-    args = parser.parse_args()
+    args = TestArgs()
 
-    for i in range(1,81):
+    for i in range(1, 81):
+        args.path_img = './pictures/Image_{:05d}_CH4.jpg'.format(i)
         with open('./marker_labels/Image_{:05d}_CH4.csv'.format(i)) as f:
             actual = f.read().rstrip('\n').split(',')
             if len(actual) == 1:
+                print(f"\nskip test {args.path_img} because there are no marker label")
                 continue
             actual = list(map(int, actual))
 
-        args.path_img = './pictures/Image_{:05d}_CH4.jpg'.format(i)
         print(f"\ntest {args.path_img}")
         main(args)

@@ -23,6 +23,5 @@ $ pipenv tun python3 test_main.py
 $ pipenv run python3 test_marker_labels.py
 ```
 
-*
 
 Created by Yuriko Ezaki
