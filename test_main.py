@@ -25,20 +25,20 @@ def test_main():
         expected = main(args)
         expected = [int(e) for e in expected]
 
-        _count_ok = 0
+        _count_ok, _count_non = 0, 0
         if len(expected) != len(actual):
             print("The data length of marker_label does not match.")
         for e,a in zip(expected, actual):
             if a == -1:
-                count_all -= 1
-                continue
+                _count_non += 1
             elif e is a:
                 _count_ok += 1
 
-        count_all += len(expected)
+        _count_all = len(expected) - _count_non
+        count_all += _count_all
         count_ok += _count_ok
 
-        print(f"accracy: {_count_ok / len(expected)} ({_count_ok} / {len(expected)})")
+        print(f"accracy: {_count_ok / _count_all} ({_count_ok} / {_count_all})")
 
     print(f"\n*** Test Results for All Dataset ***")
 
